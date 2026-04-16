@@ -1,4 +1,3 @@
-
 import asyncio
 import cv2
 import queue
@@ -41,8 +40,7 @@ async def main():
             if ids is not None:
                 cv2.aruco.drawDetectedMarkers(img, corners, ids)  # zelené rámečky + ID
                 print(f"Detekováno! ID: {ids.flatten()}")
-                if  42 in ids.flatten():
-                    print("hello world")
+
 
             cv2.imshow("Go2 Camera + ArUco", img)
 
