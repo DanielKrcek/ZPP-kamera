@@ -1,0 +1,6 @@
+[submodule "unitree-go2-research"]
+	path = unitree-go2-research
+	url = git@github.com:michal-skoula/unitree-go2-research.git
+[submodule "unitree_sdk2_python"]
+	path = unitree_sdk2_python
+	url = https://github.com/unitreerobotics/unitree_sdk2_python.git
