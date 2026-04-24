@@ -1,0 +1,4 @@
+opencv-contrib-python>=4.7
+numpy
+matplotlib
+unitree_webrtc_connect>=2.0.5
