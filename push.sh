@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./push.sh [user@host] [remote-path]
 
 REMOTE="${1:-unitree@192.168.123.18}"
-REMOTE_PATH="${2:-~/spanish-inquisition}"
+REMOTE_PATH="${2:-~/teams/spanish-inquisition}"
 
 rsync -avz --delete --partial \
   --exclude='.git/' \
