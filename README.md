@@ -1,6 +1,28 @@
 # ZPP-kamera
 
-## Syncing code:
+## REST bridge (`src/server/`)
+
+FastAPI server that turns HTTP POSTs into Go2 sport commands over
+WebRTC. Runs on your Mac (dev) or a Raspberry Pi (prod). See
+[`docs/prod_setup.md`](docs/prod_setup.md) for the Pi deployment.
+
+Dev quick-start — join the Go2's Wi-Fi AP, then:
+
+```
+cd src/server
+GO2_METHOD=LocalAP uvicorn server:app --host 0.0.0.0 --port 8000
+```
+
+Endpoints: `GET /api/health`, `GET /api/commands`, `GET /api/debug`,
+`POST /api/move/{instructions}` (e.g. `sit`, `forward20`,
+`forward20,turnleft10,hello`). Falls back to dry-run if the dog isn't
+reachable so the server still starts for local dev.
+
+## Syncing code (Jetson-side scripts only)
+
+Needed for scripts that must run on the dog (DDS-only code, LiDAR
+example). The REST bridge no longer needs this.
+
 - Bash: call `chmod +x ./push.sh`, which rsyncs the changes
 - Windows: figure it out lol
 
