@@ -1,11 +1,9 @@
-import math
 from typing import Awaitable, Callable, Optional
 
 from dog import Dog
 from servo import close_servo, open_servo
 
 LINEAR_VEL = 0.3   # m/s
-YAW_SPEED  = 0.8   # rad/s
 
 Handler = Callable[[Dog, Optional[float]], Awaitable[None]]
 
@@ -15,10 +13,7 @@ def _duration(n: Optional[float]) -> float:
 
 
 async def _rotate(d: Dog, degrees: Optional[float]) -> None:
-    deg = degrees if degrees is not None else 90.0
-    duration_s = abs(deg) * (math.pi / 180) / YAW_SPEED
-    vyaw = YAW_SPEED if deg > 0 else -YAW_SPEED
-    await d.move_for(0, 0, vyaw, duration_s)
+    await d.rotate(degrees if degrees is not None else 90.0)
 
 
 COMMANDS: dict[str, Handler] = {

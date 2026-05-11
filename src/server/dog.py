@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import os
 import socket
 from contextlib import asynccontextmanager
@@ -24,6 +25,9 @@ def _set_decoder_with_fallback(self, decoder_type='libvoxel'):
 _WDC.set_decoder = _set_decoder_with_fallback
 
 MOVE_HZ = 10
+YAW_SPEED = 0.8        # rad/s applied during closed-loop rotation
+_ROTATE_POLL = 0.05    # s between yaw samples
+_ROTATE_THRESHOLD = math.radians(2)  # accept within 2° of target
 # Dog signaling ports (new firmware: 9991, old: 8081).
 SIGNALING_PORTS = (9991, 8081)
 PROBE_TIMEOUT_S = 2.0
@@ -45,10 +49,29 @@ async def _reachable(ip: str) -> bool:
     )
 
 
+def _signed_angle_diff(a: float, b: float) -> float:
+    """Signed angular distance from b to a, in (-π, π]."""
+    d = (a - b) % (2 * math.pi)
+    if d > math.pi:
+        d -= 2 * math.pi
+    return d
+
+
 class Dog:
     def __init__(self, conn: Optional[UnitreeWebRTCConnection]):
         self._conn = conn
         self._lock = asyncio.Lock()
+        self._yaw: Optional[float] = None
+        if conn is not None:
+            self._subscribe_low_state()
+
+    def _subscribe_low_state(self):
+        def _on_low_state(msg):
+            try:
+                self._yaw = msg["data"]["imu_state"]["rpy"][2]
+            except (KeyError, IndexError, TypeError):
+                pass
+        self._conn.datachannel.pub_sub.subscribe(RTC_TOPIC["LOW_STATE"], _on_low_state)
 
     @property
     def dry_run(self) -> bool:
@@ -83,6 +106,41 @@ class Dog:
             while loop.time() < deadline:
                 await self._send("Move", {"x": vx, "y": vy, "z": vyaw})
                 await asyncio.sleep(period)
+            await self._send("StopMove")
+
+    async def rotate(self, degrees: float):
+        if self.dry_run:
+            print(f"[dry] rotate({degrees:.1f}°)")
+            return
+
+        target_rad = math.radians(degrees)
+        direction = 1.0 if degrees >= 0 else -1.0
+        # generous timeout: allow at least 5s plus time for a slow rotation
+        timeout = abs(degrees) / 10 + 5
+
+        async with self._lock:
+            start_yaw = self._yaw
+            if start_yaw is None:
+                # no IMU data yet — fall back to timed rotation
+                duration = abs(target_rad) / YAW_SPEED
+                loop = asyncio.get_event_loop()
+                deadline = loop.time() + duration
+                while loop.time() < deadline:
+                    await self._send("Move", {"x": 0, "y": 0, "z": direction * YAW_SPEED})
+                    await asyncio.sleep(_ROTATE_POLL)
+                await self._send("StopMove")
+                return
+
+            loop = asyncio.get_event_loop()
+            deadline = loop.time() + timeout
+            while loop.time() < deadline:
+                traveled = _signed_angle_diff(self._yaw, start_yaw)
+                remaining = target_rad - traveled
+                if direction * remaining < _ROTATE_THRESHOLD:
+                    break
+                await self._send("Move", {"x": 0, "y": 0, "z": direction * YAW_SPEED})
+                await asyncio.sleep(_ROTATE_POLL)
+
             await self._send("StopMove")
 
 
