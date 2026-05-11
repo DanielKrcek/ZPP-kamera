@@ -9,7 +9,6 @@ SERVO_PINS = {
     4: 21,
 }
 OPEN_ANGLE = 110   # degrees
-HOLD_TIME  = 3.0   # seconds
 MIN_PW     = 500
 MAX_PW     = 2500
 STEP_DELAY = 0.05
@@ -42,11 +41,18 @@ async def _move_slow(pin: int, from_angle: int, to_angle: int):
         await asyncio.sleep(STEP_DELAY)
 
 
-async def open_servo(servo_num: int):
+def _pin(servo_num: int) -> int:
     if servo_num not in SERVO_PINS:
         raise ValueError(f"unknown servo {servo_num!r}; valid: {sorted(SERVO_PINS)}")
-    pin = SERVO_PINS[servo_num]
+    return SERVO_PINS[servo_num]
+
+
+async def open_servo(servo_num: int):
+    pin = _pin(servo_num)
     await _move_slow(pin, 0, OPEN_ANGLE)
-    await asyncio.sleep(HOLD_TIME)
+
+
+async def close_servo(servo_num: int):
+    pin = _pin(servo_num)
     await _move_slow(pin, OPEN_ANGLE, 0)
     _pi.set_servo_pulsewidth(pin, 0)

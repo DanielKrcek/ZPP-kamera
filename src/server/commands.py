@@ -2,7 +2,7 @@ import re
 from typing import Awaitable, Callable, Optional
 
 from dog import Dog
-from servo import open_servo
+from servo import close_servo, open_servo
 
 LINEAR_VEL = 0.3   # m/s
 ANGULAR_VEL = 0.5  # rad/s
@@ -48,6 +48,11 @@ COMMANDS: dict[str, Handler] = {
     "open2":     lambda d, _: open_servo(2),
     "open3":     lambda d, _: open_servo(3),
     "open4":     lambda d, _: open_servo(4),
+
+    "close1":    lambda d, _: close_servo(1),
+    "close2":    lambda d, _: close_servo(2),
+    "close3":    lambda d, _: close_servo(3),
+    "close4":    lambda d, _: close_servo(4),
 }
 
 _CMD_RE = re.compile(r"^([a-z]+)(\d+)?$")

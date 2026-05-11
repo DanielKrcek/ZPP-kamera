@@ -52,7 +52,19 @@ async def commands_list():
 
 @app.get("/open{n}")
 async def open_servo(n: int):
-    await servo.open_servo(n)
+    try:
+        await servo.open_servo(n)
+    except:
+        return {"status": "error", "message": "Could not open servo"}
+    return {"status": "ok", "servo": n}
+
+
+@app.get("/close{n}")
+async def close_servo(n: int):
+    try:
+        await servo.close_servo(n)
+    except:
+        return {"status": "error", "message": "Could not close servo"}
     return {"status": "ok", "servo": n}
 
 
