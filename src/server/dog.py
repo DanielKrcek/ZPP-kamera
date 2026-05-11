@@ -78,7 +78,7 @@ class Dog:
 @asynccontextmanager
 async def connect_dog():
     method_name = os.getenv("GO2_METHOD", "LocalSTA")
-    ip = os.getenv("GO2_IP", "192.168.123.18")
+    ip = os.getenv("GO2_IP", "192.168.123.161")
     method = getattr(WebRTCConnectionMethod, method_name)
 
     conn: Optional[UnitreeWebRTCConnection] = None
