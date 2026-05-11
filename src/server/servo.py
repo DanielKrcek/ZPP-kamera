@@ -4,9 +4,9 @@ import pigpio
 # ── Edit these to match your wiring ──────────────────────────────────────────
 SERVO_PINS = {
     1: 18,
-    2: 19,
-    3: 20,
-    4: 21,
+    2: 23,
+    3: 24,
+    4: 25,
 }
 OPEN_ANGLE = 110   # degrees
 MIN_PW     = 500
