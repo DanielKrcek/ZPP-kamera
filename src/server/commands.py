@@ -44,15 +44,8 @@ COMMANDS: dict[str, Handler] = {
     "jump":      lambda d, _: d.call("FrontJump"),
     "pounce":    lambda d, _: d.call("FrontPounce"),
 
-    "open1":     lambda d, _: open_servo(1),
-    "open2":     lambda d, _: open_servo(2),
-    "open3":     lambda d, _: open_servo(3),
-    "open4":     lambda d, _: open_servo(4),
-
-    "close1":    lambda d, _: close_servo(1),
-    "close2":    lambda d, _: close_servo(2),
-    "close3":    lambda d, _: close_servo(3),
-    "close4":    lambda d, _: close_servo(4),
+    "open":      lambda d, n: open_servo(n),
+    "close":     lambda d, n: close_servo(n),
 }
 
 _CMD_RE = re.compile(r"^([a-z]+)(\d+)?$")
