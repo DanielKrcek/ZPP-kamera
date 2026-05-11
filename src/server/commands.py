@@ -2,6 +2,7 @@ import re
 from typing import Awaitable, Callable, Optional
 
 from dog import Dog
+from servo import open_servo
 
 LINEAR_VEL = 0.3   # m/s
 ANGULAR_VEL = 0.5  # rad/s
@@ -42,6 +43,11 @@ COMMANDS: dict[str, Handler] = {
     "leftflip":  lambda d, _: d.call("LeftFlip"),
     "jump":      lambda d, _: d.call("FrontJump"),
     "pounce":    lambda d, _: d.call("FrontPounce"),
+
+    "open1":     lambda d, _: open_servo(1),
+    "open2":     lambda d, _: open_servo(2),
+    "open3":     lambda d, _: open_servo(3),
+    "open4":     lambda d, _: open_servo(4),
 }
 
 _CMD_RE = re.compile(r"^([a-z]+)(\d+)?$")

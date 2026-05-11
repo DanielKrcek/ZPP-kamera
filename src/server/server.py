@@ -2,15 +2,20 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+import servo
 from commands import COMMANDS, parse
 from dog import connect_dog
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    servo.init()
     async with connect_dog() as dog:
         app.state.dog = dog
-        yield
+        try:
+            yield
+        finally:
+            servo.stop()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -43,6 +48,12 @@ async def debug():
 @app.get("/api/commands")
 async def commands_list():
     return {"commands": sorted(COMMANDS.keys())}
+
+
+@app.get("/open{n}")
+async def open_servo(n: int):
+    await servo.open_servo(n)
+    return {"status": "ok", "servo": n}
 
 
 @app.post("/api/move/{instructions}")
