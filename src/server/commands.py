@@ -1,18 +1,24 @@
-import re
+import math
 from typing import Awaitable, Callable, Optional
 
 from dog import Dog
 from servo import close_servo, open_servo
 
 LINEAR_VEL = 0.3   # m/s
-ANGULAR_VEL = 0.5  # rad/s
+YAW_SPEED  = 0.8   # rad/s
 
-Handler = Callable[[Dog, Optional[int]], Awaitable[None]]
+Handler = Callable[[Dog, Optional[float]], Awaitable[None]]
 
 
-def _duration(n: Optional[int]) -> float:
-    # Numeric arg is duration in deciseconds (0.1 s). Default 10 = 1.0 s.
-    return (n or 10) / 10
+def _duration(n: Optional[float]) -> float:
+    return n if n is not None else 1.0
+
+
+async def _rotate(d: Dog, degrees: Optional[float]) -> None:
+    deg = degrees if degrees is not None else 90.0
+    duration_s = abs(deg) * (math.pi / 180) / YAW_SPEED
+    vyaw = YAW_SPEED if deg > 0 else -YAW_SPEED
+    await d.move_for(0, 0, vyaw, duration_s)
 
 
 COMMANDS: dict[str, Handler] = {
@@ -20,8 +26,7 @@ COMMANDS: dict[str, Handler] = {
     "back":      lambda d, n: d.move_for(-LINEAR_VEL, 0, 0, _duration(n)),
     "left":      lambda d, n: d.move_for(0,  LINEAR_VEL, 0, _duration(n)),
     "right":     lambda d, n: d.move_for(0, -LINEAR_VEL, 0, _duration(n)),
-    "turnleft":  lambda d, n: d.move_for(0, 0,  ANGULAR_VEL, _duration(n)),
-    "turnright": lambda d, n: d.move_for(0, 0, -ANGULAR_VEL, _duration(n)),
+    "rotate":    _rotate,
 
     "stop":      lambda d, _: d.call("StopMove"),
     "stand":     lambda d, _: d.call("StandUp"),
@@ -48,14 +53,11 @@ COMMANDS: dict[str, Handler] = {
     "close":     lambda d, n: close_servo(n),
 }
 
-_CMD_RE = re.compile(r"^([a-z]+)(\d+)?$")
-
 
 def parse(token: str):
-    m = _CMD_RE.match(token.strip().lower())
-    if not m:
-        return None
-    name, num = m.group(1), m.group(2)
+    parts = token.strip().lower().split(":", 1)
+    name = parts[0]
     if name not in COMMANDS:
         return None
-    return name, int(num) if num else None
+    arg = float(parts[1]) if len(parts) == 2 else None
+    return name, arg

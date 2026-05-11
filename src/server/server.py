@@ -47,7 +47,7 @@ async def debug():
 
 @app.get("/api/commands")
 async def commands_list():
-    return {"commands": sorted(COMMANDS.keys())}
+    return {"commands": COMMANDS.keys()}
 
 
 @app.get("/open{n}")
