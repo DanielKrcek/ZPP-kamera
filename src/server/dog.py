@@ -11,6 +11,17 @@ from unitree_webrtc_connect import (
     UnitreeWebRTCConnection,
     WebRTCConnectionMethod,
 )
+from unitree_webrtc_connect.webrtc_datachannel import WebRTCDataChannel as _WDC
+
+_orig_set_decoder = _WDC.set_decoder
+
+def _set_decoder_with_fallback(self, decoder_type='libvoxel'):
+    try:
+        _orig_set_decoder(self, decoder_type)
+    except RuntimeError:
+        _orig_set_decoder(self, 'native')
+
+_WDC.set_decoder = _set_decoder_with_fallback
 
 MOVE_HZ = 10
 # Dog signaling ports (new firmware: 9991, old: 8081).
